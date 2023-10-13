@@ -1,0 +1,48 @@
+version: '3'
+
+services:
+
+  nn-nginx:
+    build:
+      context: nginx
+    image: nginx
+    container_name: nn-nginx
+    ports:
+    - "8080:80"
+    environment:
+    - NGINX_PORT=80
+    networks:
+      - node-network
+    depends_on:
+      - nn-node
+
+  nn-node:
+    build: 
+      context: node
+    image: node:latest
+    container_name: nn-node
+    networks:
+      - node-network
+    tty: true
+    depends_on:
+      - nn-db
+    entrypoint: dockerize -wait tcp://nn-db:3306 -timeout 20s docker-entrypoint.sh
+    command: "node ./server.js"
+
+  nn-db:
+    image: mysql:5.7
+    command: --innodb-use-native-aio=0
+    container_name: nn-db
+    restart: always
+    tty: true
+    volumes:
+      - ./mysql:/var/lib/mysql
+    environment:
+      - MYSQL_DATABASE=nodedb
+      - MYSQL_ROOT_PASSWORD=root
+    networks:
+      - node-network
+
+networks:
+  node-network:
+    driver: bridge
