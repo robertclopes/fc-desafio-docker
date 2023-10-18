@@ -21,6 +21,9 @@ services:
       context: node
     image: node:latest
     container_name: nn-node
+    volumes:
+      - ./node/:/usr/src/app/
+      - /usr/src/app/node_modules
     networks:
       - node-network
     tty: true
